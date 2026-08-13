@@ -7,6 +7,7 @@ const SESSION_KEY = "visitor_session_id";
 const PATH_KEY = "visitor_last_path";
 
 let hasTrackedSession = false;
+let heartbeatId = null;
 
 const getSessionId = () => {
   const savedSessionId = sessionStorage.getItem(SESSION_KEY);
@@ -68,7 +69,7 @@ function VisitorTracker() {
 
     sendVisitorPayload("/api/visitor/track", buildPayload(currentPath, 0));
 
-    const handleBeforeUnload = () => {
+    const flushSession = () => {
       const savedStartedAt = Number(
         sessionStorage.getItem(START_KEY) || startedAt,
       );
@@ -78,10 +79,30 @@ function VisitorTracker() {
       sendVisitorPayload("/api/visitor/session", buildPayload(lastPath, durationMs));
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushSession();
+      }
+    };
+
+    const handlePageHide = () => {
+      flushSession();
+    };
+
+    heartbeatId = window.setInterval(() => {
+      flushSession();
+    }, 15000);
+
+    window.addEventListener("pagehide", handlePageHide);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (heartbeatId) {
+        window.clearInterval(heartbeatId);
+        heartbeatId = null;
+      }
+      window.removeEventListener("pagehide", handlePageHide);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
