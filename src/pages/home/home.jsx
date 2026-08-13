@@ -41,7 +41,6 @@ function Home() {
 
   const mySkills = [
     { id: 1, name: "Python", icon: <FaPython />, color: "#3776AB" },
-
     { id: 2, name: "JavaScript", icon: <FaJsSquare />, color: "#F7DF1E" },
     { id: 3, name: "React", icon: <FaReact />, color: "#108aac" },
     { id: 4, name: "Vite", icon: <SiVite />, color: "#535bfc" },

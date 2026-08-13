@@ -39,14 +39,11 @@ function About() {
         description="Men Akbarali — Muammolarga Raqamli Yechim Topuvchi Muhandis. Mening dasturlashdagi yo'lim, prinsiplarim va erishgan yutuqlarim haqida bu yerda bilib oling."
         keywords="Tursunboyev Akbarali haqida, Akbarali, tarjimai hol, prinsiplar, tajriba"
       />
-      {/* 👤 1. Asosiy Tanishtiruv Seksiyasi */}
       <div className="about-hero">
         <h1 className="about-title">Men Haqimda</h1>
         <div className="about-grid">
           <div className="about-bio">
-            <h3>
-              Men Akbarali — Muammolarga Raqamli Yechim Topuvchi Muhandis.
-            </h3>
+            <h3>Men Akbarali — Andijon Qishloq</h3>
             <p>
               Texnologiyalar olamiga qiziqishim oddiy qiziqishdan boshlanib,
               bugungi kunda Full-Stack yo'nalishidagi mustahkam ko'nikmalarga
@@ -77,7 +74,7 @@ function About() {
                 <img
                   src="/src/assets/image.png"
                   alt="ZAYLO - MONTAGEM URANIUM"
-                  className={`track-cover ${isThisPlaying ? "spinning" : ""}`}
+                  className="track-cover"
                 />
                 <button
                   className={`sound-play-btn ${isThisPlaying ? "playing" : ""}`}
@@ -87,8 +84,8 @@ function About() {
                   {isThisPlaying ? (
                     /* Pause Icon */
                     <svg
-                      width="18"
-                      height="18"
+                      width="35"
+                      height="35"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
@@ -97,8 +94,8 @@ function About() {
                   ) : (
                     /* Play Icon */
                     <svg
-                      width="18"
-                      height="18"
+                      width="35"
+                      height="35"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
