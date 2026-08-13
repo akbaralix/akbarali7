@@ -53,8 +53,8 @@ function Blog() {
       />
       <h2>Bu yerda men o'z haqimda yozaman</h2>
       <div className="blog-grid">
-        {posts.map((post) => (
-          <div key={post.id}>
+        {(posts || []).map((post) => (
+          <div key={post._id}>
             <div className="post-date">
               <p>{new Date(post.data).toLocaleDateString("uz-UZ", {})}</p>
             </div>

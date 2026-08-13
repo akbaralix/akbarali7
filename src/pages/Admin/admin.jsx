@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ReactQuill from "react-quill-new";
 import { usePosts } from "../blog/usePosts";
-import { FaRegTrashCan } from "react-icons/fa6";
+import { FaRegTrashCan, FaUsers } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";
 
 import "./admin.css";
@@ -17,6 +17,10 @@ function Admin() {
   const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
+  const [showVisitors, setShowVisitors] = useState(false);
+  const [visitors, setVisitors] = useState([]);
+  const [visitorsLoading, setVisitorsLoading] = useState(false);
+  const [visitorsError, setVisitorsError] = useState("");
 
   const [yangiMaqola, setYangiMaqola] = useState({
     sarlavha: "",
@@ -112,6 +116,42 @@ function Admin() {
     sessionStorage.removeItem("admin_token");
     setToken("");
     setIsAuthorized(false);
+  };
+
+  const formatDuration = (ms = 0) => {
+    const totalSeconds = Math.floor(Number(ms) / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours} soat ${minutes} daqiqa ${seconds} soniya`;
+  };
+
+  const handleOpenVisitors = async () => {
+    setShowVisitors(true);
+    setVisitorsError("");
+
+    if (visitors.length > 0) return;
+
+    setVisitorsLoading(true);
+    try {
+      const response = await fetch(`${api}/api/visitor`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Visitorlarni olishda xatolik");
+      }
+
+      setVisitors(data.data || []);
+    } catch (error) {
+      setVisitorsError(error.message || "Visitorlarni olishda xatolik yuz berdi");
+    } finally {
+      setVisitorsLoading(false);
+    }
   };
 
   // 📝 MAQOLA QO'SHISH (JWT TOKEN BILAN HAVSIZ SO'ROV)
@@ -300,8 +340,27 @@ function Admin() {
           display: "flex",
           justifyContent: "flex-end",
           padding: "10px 20px",
+          gap: "10px",
+          flexWrap: "wrap",
         }}
       >
+        <button
+          onClick={handleOpenVisitors}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "#2e86ff",
+            color: "#fff",
+            border: "none",
+            padding: "8px 16px",
+            borderRadius: "10px",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          <FaUsers /> Visitorlar
+        </button>
         <button
           onClick={handleLogout}
           style={{
@@ -395,6 +454,88 @@ function Admin() {
             ))}
         </div>
       </div>
+
+      {showVisitors && (
+        <div
+          className="visitor-modal-backdrop"
+          onClick={() => setShowVisitors(false)}
+        >
+          <div
+            className="visitor-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="visitor-modal-header">
+              <h3>Visitor ma'lumotlari</h3>
+              <button type="button" onClick={() => setShowVisitors(false)}>
+                Yopish
+              </button>
+            </div>
+
+            {visitorsLoading ? (
+              <p className="visitor-status">Yuklanmoqda...</p>
+            ) : visitorsError ? (
+              <p className="error-message">{visitorsError}</p>
+            ) : visitors.length === 0 ? (
+              <p className="visitor-status">Hozircha visitor topilmadi.</p>
+            ) : (
+              <div className="visitor-table-wrap">
+                <table className="visitor-table">
+                  <thead>
+                    <tr>
+                      <th>IP</th>
+                      <th>Joylashuv</th>
+                      <th>Qurilma</th>
+                      <th>Brauzer / OS</th>
+                      <th>Til</th>
+                      <th>Vaqt</th>
+                      <th>Davomiylik</th>
+                      <th>Kirishi</th>
+                      <th>Oxirgi sahifa</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visitors.map((visitor) => (
+                      <tr key={visitor._id}>
+                        <td>{visitor.ip}</td>
+                        <td>
+                          {[visitor.country, visitor.region, visitor.city]
+                            .filter(Boolean)
+                            .join(", ") || "-"}
+                        </td>
+                        <td>{visitor.deviceType || "-"}</td>
+                        <td>
+                          {visitor.browser || "-"}
+                          <br />
+                          {visitor.os || "-"}
+                        </td>
+                        <td>{visitor.language || "-"}</td>
+                        <td>
+                          <small>
+                            Boshlanish:{" "}
+                            {visitor.firstSeen
+                              ? new Date(visitor.firstSeen).toLocaleString("uz-UZ")
+                              : "-"}
+                          </small>
+                          <br />
+                          <small>
+                            So'nggi:{" "}
+                            {visitor.lastSeen
+                              ? new Date(visitor.lastSeen).toLocaleString("uz-UZ")
+                              : "-"}
+                          </small>
+                        </td>
+                        <td>{formatDuration(visitor.totalDurationMs)}</td>
+                        <td>{visitor.visitCount}</td>
+                        <td>{visitor.lastPath || "/"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

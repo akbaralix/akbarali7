@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./DB/db.js";
 import Post from "./Post.js";
+import Visitor from "./Visitor.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -17,6 +18,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
+app.set("trust proxy", 1);
 
 // 1. HTTP Xavfsizlik sarlavhalari (Helmet)
 app.use(helmet());
@@ -29,6 +31,75 @@ app.use(express.json({ limit: "10mb" }));
 
 // MongoDB ga ulanish
 connectDB();
+
+const getClientIp = (req) => {
+  const forwardedFor = req.headers["x-forwarded-for"];
+  if (typeof forwardedFor === "string" && forwardedFor.trim()) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  const realIp = req.headers["x-real-ip"];
+  if (typeof realIp === "string" && realIp.trim()) {
+    return realIp.trim();
+  }
+
+  const cfIp = req.headers["cf-connecting-ip"];
+  if (typeof cfIp === "string" && cfIp.trim()) {
+    return cfIp.trim();
+  }
+
+  return req.ip || req.socket?.remoteAddress || "unknown";
+};
+
+const getLocationFromHeaders = (req) => ({
+  country:
+    (typeof req.headers["x-vercel-ip-country"] === "string" &&
+      req.headers["x-vercel-ip-country"]) ||
+    (typeof req.headers["cf-ipcountry"] === "string" &&
+      req.headers["cf-ipcountry"]) ||
+    "",
+  region:
+    (typeof req.headers["x-vercel-ip-country-region"] === "string" &&
+      req.headers["x-vercel-ip-country-region"]) ||
+    "",
+  city:
+    (typeof req.headers["x-vercel-ip-city"] === "string" &&
+      req.headers["x-vercel-ip-city"]) ||
+    "",
+});
+
+const parseUserAgent = (userAgent = "") => {
+  const normalized = userAgent.toLowerCase();
+
+  let browser = "Unknown";
+  if (normalized.includes("edg/")) browser = "Edge";
+  else if (normalized.includes("chrome/")) browser = "Chrome";
+  else if (normalized.includes("firefox/")) browser = "Firefox";
+  else if (normalized.includes("safari/")) browser = "Safari";
+  else if (normalized.includes("opr/") || normalized.includes("opera"))
+    browser = "Opera";
+
+  let os = "Unknown";
+  if (normalized.includes("windows nt")) os = "Windows";
+  else if (normalized.includes("android")) os = "Android";
+  else if (normalized.includes("iphone") || normalized.includes("ipad"))
+    os = "iOS";
+  else if (normalized.includes("mac os x")) os = "macOS";
+  else if (normalized.includes("linux")) os = "Linux";
+
+  let deviceType = "Desktop";
+  if (normalized.includes("tablet") || normalized.includes("ipad")) {
+    deviceType = "Tablet";
+  } else if (
+    normalized.includes("mobi") ||
+    normalized.includes("iphone") ||
+    normalized.includes("android")
+  ) {
+    deviceType = "Mobile";
+  }
+
+  return { browser, os, deviceType };
+};
 
 // 4. Rate Limiter (Hujumlardan himoya)
 const loginLimiter = rateLimit({
@@ -128,6 +199,135 @@ app.post("/api/admin/login", loginLimiter, async (req, res) => {
 // 🔍 7. TOKEN VERIFY ENDPOINT (Token haqiqiyligini tekshirish)
 app.get("/api/admin/verify", authMiddleware, (req, res) => {
   res.status(200).json({ success: true, valid: true });
+});
+
+app.post("/api/visitor/track", async (req, res) => {
+  try {
+    const ip = getClientIp(req);
+    const {
+      sessionId = "",
+      currentPath = "/",
+      userAgent = "",
+      platform = "",
+      language = "",
+      screen = "",
+      timezone = "",
+    } = req.body || {};
+
+    const safeIp = ip === "unknown" ? `unknown-${sessionId || Date.now()}` : ip;
+    const location = getLocationFromHeaders(req);
+    const parsed = parseUserAgent(userAgent);
+    const now = new Date();
+
+    const visitor = await Visitor.findOneAndUpdate(
+      { ip: safeIp },
+      {
+        $set: {
+          sessionId,
+          lastSeen: now,
+          lastPath: currentPath || "/",
+          userAgent,
+          browser: parsed.browser,
+          os: parsed.os,
+          deviceType: parsed.deviceType,
+          platform,
+          language,
+          screen,
+          timezone,
+          country: location.country,
+          region: location.region,
+          city: location.city,
+        },
+        $setOnInsert: { ip: safeIp, firstSeen: now },
+        $inc: { visitCount: 1 },
+      },
+      { upsert: true, new: true }
+    );
+
+    res.status(201).json({ success: true, data: visitor });
+  } catch (error) {
+    console.error("Visitor track xatoligi:", error);
+    res.status(500).json({
+      success: false,
+      message: "Visitor ma'lumotlarini saqlashda xatolik yuz berdi!",
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/visitor/session", async (req, res) => {
+  try {
+    const ip = getClientIp(req);
+    const {
+      sessionId = "",
+      durationMs = 0,
+      currentPath = "/",
+      userAgent = "",
+      platform = "",
+      language = "",
+      screen = "",
+      timezone = "",
+    } = req.body || {};
+
+    const safeIp = ip === "unknown" ? `unknown-${sessionId || Date.now()}` : ip;
+    const safeDuration = Number(durationMs) || 0;
+    const location = getLocationFromHeaders(req);
+    const parsed = parseUserAgent(userAgent);
+    const now = new Date();
+
+    const visitor = await Visitor.findOneAndUpdate(
+      { ip: safeIp },
+      {
+        $set: {
+          sessionId,
+          lastSeen: now,
+          lastPath: currentPath || "/",
+          userAgent,
+          browser: parsed.browser,
+          os: parsed.os,
+          deviceType: parsed.deviceType,
+          platform,
+          language,
+          screen,
+          timezone,
+          country: location.country,
+          region: location.region,
+          city: location.city,
+          lastSessionDurationMs: safeDuration,
+        },
+        $setOnInsert: { ip: safeIp, firstSeen: now },
+        $inc: { totalDurationMs: safeDuration },
+      },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({ success: true, data: visitor });
+  } catch (error) {
+    console.error("Visitor session xatoligi:", error);
+    res.status(500).json({
+      success: false,
+      message: "Visitor seansi yangilashda xatolik yuz berdi!",
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/visitor", authMiddleware, async (req, res) => {
+  try {
+    const visitors = await Visitor.find().sort({ lastSeen: -1 });
+    res.status(200).json({
+      success: true,
+      count: visitors.length,
+      data: visitors,
+    });
+  } catch (error) {
+    console.error("Visitorlarni olishda xatolik:", error);
+    res.status(500).json({
+      success: false,
+      message: "Visitor ma'lumotlarini olishda xatolik yuz berdi!",
+      error: error.message,
+    });
+  }
 });
 
 // 📝 8. YANGI MAQOLA YARATISH (CREATE) - FAKAT HAVSIZ ADMIN UCHUN

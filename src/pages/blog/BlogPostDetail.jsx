@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { usePostDetail } from "./usePosts.js"; // Serverdan ma'lumotni yuklovchi hook
 import { IoArrowBackOutline } from "react-icons/io5";
@@ -30,7 +30,7 @@ function BlogPostDetail() {
       // Brauzerga ushbu post ko'rilganligi haqida cookie yozamiz (24 soatga)
       document.cookie = `viewed_${post._id}=true; max-age=86400; path=/`;
     }
-  }, [post?._id]); // Bu yerga ham post?._id o'rnatildi
+  }, [post?._id, api]); // Bu yerga ham post?._id o'rnatildi
   if (isLoading) {
     return (
       <div
@@ -110,7 +110,11 @@ function BlogPostDetail() {
         />
       </div>
       <div className="post-content ql-editor">
-        <div dangerouslySetInnerHTML={{ __html: post.matn ? post.matn.replace(/&nbsp;/g, " ") : "" }} />
+        <div
+          dangerouslySetInnerHTML={{
+            __html: post.matn ? post.matn.replace(/&nbsp;/g, " ") : "",
+          }}
+        />
       </div>
       <ImageZoom
         src={post.rasm}

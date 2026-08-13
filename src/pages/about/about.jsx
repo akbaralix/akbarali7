@@ -1,6 +1,6 @@
-import React from "react";
 import SEO from "../../components/SEO";
-import sound from "/src/assets/ZAYLO - MONTAGEM URANIUM (SLOWED).mp3";
+import sound from "../../assets/ZAYLO - MONTAGEM URANIUM (SLOWED).mp3";
+import trackCover from "../../assets/image.png";
 import { useAudio } from "../../components/AudioContext";
 import "./about.css";
 
@@ -111,6 +111,11 @@ function About() {
 
             <div className="sound-body">
               <div className="track-cover-wrapper">
+                <img
+                  src={trackCover}
+                  alt="ZAYLO - MONTAGEM URANIUM"
+                  className="track-cover"
+                />
                 <button
                   className={`sound-play-btn ${isThisPlaying ? "playing" : ""}`}
                   onClick={() => playTrack(sound, "ZAYLO - MONTAGEM URANIUM")}
