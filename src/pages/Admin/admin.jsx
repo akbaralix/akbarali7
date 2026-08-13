@@ -227,7 +227,10 @@ function Admin() {
     return (
       <div className="admin-login-wrapper">
         <div className="ad-sticker">
-          <img src="/src/assets/tenor.gif" alt="" />
+          <img
+            src="https://cdn2.cdnstep.com/c3GC7J6TTfnVDjyJufA4/26.thumb128.webp"
+            alt=""
+          />
         </div>
         <form onSubmit={handleLoginSubmit} className="admin-login">
           <h3>Admin panelga kirish 🔐</h3>

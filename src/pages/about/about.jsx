@@ -43,19 +43,59 @@ function About() {
         <h1 className="about-title">Men Haqimda</h1>
         <div className="about-grid">
           <div className="about-bio">
-            <h3>Men Akbarali — Andijon Qishloq</h3>
+            <div className="about-bio-flx">
+              <h3>Mening ismim Akbarali</h3>
+              <img
+                src="https://cdn2.cdnstep.com/YpBVNOUlV38UevDn3xU7/4-2.thumb128.png"
+                alt=""
+              />
+            </div>
+
             <p>
-              Texnologiyalar olamiga qiziqishim oddiy qiziqishdan boshlanib,
-              bugungi kunda Full-Stack yo'nalishidagi mustahkam ko'nikmalarga
-              aylandi. Men uchun dasturlash — shunchaki kod yozish emas, balki
-              atrofimizdagi muammolarni yengillashtiradigan asbob-uskunalar va
-              tizimlarni yaratishdir.
+              Men Andijon viloyati, Izboskan tumanida tug‘ilganman. Hozirda
+              Andijon Qishloq Xo‘jaligi va Agrotexnologiyalar Institutida tahsil
+              olyapman. Dasturlashga bo‘lgan qiziqishim 2024-yilda boshlangan.
+              Shu vaqtdan beri dasturlashni mustaqil o‘rganib, turli loyihalar
+              ustida ishlab, o‘z bilim va tajribamni bosqichma-bosqich
+              rivojlantirib kelmoqdaman.
+              <img
+                src="https://cdn2.cdnstep.com/YpBVNOUlV38UevDn3xU7/10-2.thumb128.png"
+                alt=""
+              />
             </p>
             <p>
-              Men qishloq sharoitida yashab, internet va zamonaviy
-              texnologiyalar yordamida har kuni o'z ustimda ishlayman.
-              Institutdagi o'qishim va kundalik hayotimni dasturlash bilan
-              ajoyib tarzda muvozanatda ushlab turishga harakat qilaman.
+              Ko‘pchilik dasturlashni asosan pul topish yoki yaxshi ishga kirish
+              uchun o‘rganadi. Menda esa bu qiziqish biroz boshqacharoq
+              boshlangan. Men dasturlash orqali katta loyihalar yaratishni,
+              ayniqsa O‘zbekiston foydalanuvchilari uchun foydali va qiziqarli
+              mahsulot ishlab chiqishni orzu qilaman.
+              <img
+                src="https://cdn2.cdnstep.com/YpBVNOUlV38UevDn3xU7/39-1.thumb128.png"
+                alt=""
+              />
+            </p>
+
+            <p>
+              Bir vaqtlar Telegram, Instagram yoki Facebook kabi katta ijtimoiy
+              platforma yaratishni xohlardim. Keyinchalik esa bunday loyihani
+              yaratish faqat texnologiyaning o‘zi bilan cheklanmasligini,
+              foydalanuvchilar ishonchi va auditoriyasini shakllantirish ham
+              juda katta mas’uliyat ekanini tushundim. Shunga qaramay, bu fikr
+              meni to‘xtatmadi.
+              <img
+                src="	https://cdn2.cdnstep.com/YpBVNOUlV38UevDn3xU7/19-2.thumb128.png"
+                alt=""
+              />
+            </p>
+            <p>
+              Hozircha aniq bir startap g‘oyam yo‘q. Lekin kelajakda o‘zimga
+              tegishli, katta auditoriyaga ega va haqiqiy muammoni hal qiladigan
+              loyiha yaratishni maqsad qilganman. Hozir esa buning uchun kerak
+              bo‘ladigan bilim va tajribani yig‘ish bilan bandman.
+              <img
+                src="	https://cdn2.cdnstep.com/YpBVNOUlV38UevDn3xU7/27-2.thumb128.png"
+                alt=""
+              />
             </p>
           </div>
 
@@ -71,11 +111,6 @@ function About() {
 
             <div className="sound-body">
               <div className="track-cover-wrapper">
-                <img
-                  src="/src/assets/image.png"
-                  alt="ZAYLO - MONTAGEM URANIUM"
-                  className="track-cover"
-                />
                 <button
                   className={`sound-play-btn ${isThisPlaying ? "playing" : ""}`}
                   onClick={() => playTrack(sound, "ZAYLO - MONTAGEM URANIUM")}
