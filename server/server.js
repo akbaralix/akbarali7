@@ -48,8 +48,7 @@ app.use(
 );
 
 // Preflight (OPTIONS) so'rovlariga javob berish
-app.options("*", cors());
-// 3. JSON body parser
+app.options(/(.*)/, cors()); // ✅// 3. JSON body parser
 app.use(express.json({ limit: "10mb" }));
 
 // MongoDB ga ulanish
@@ -369,12 +368,10 @@ app.post("/api/post", authMiddleware, writeLimiter, async (req, res) => {
     }
 
     if (!rasm || typeof rasm !== "string" || !rasm.trim()) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Rasm URL-manzili kiritilishi shart!",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Rasm URL-manzili kiritilishi shart!",
+      });
     }
 
     // XSS Hujumlaridan himoyalash uchun HTML tozalash
