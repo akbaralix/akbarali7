@@ -11,6 +11,7 @@ import {
   FaJsSquare,
   FaReact,
 } from "react-icons/fa";
+import { SiSupabase } from "react-icons/si";
 import { GrMysql } from "react-icons/gr";
 import { BiLogoPostgresql } from "react-icons/bi";
 import { SiVite, SiMongodb } from "react-icons/si";
@@ -40,17 +41,72 @@ function Home() {
   ];
 
   const mySkills = [
-    { id: 1, name: "Python", icon: <FaPython />, color: "#3776AB" },
-    { id: 2, name: "JavaScript", icon: <FaJsSquare />, color: "#F7DF1E" },
-    { id: 3, name: "React", icon: <FaReact />, color: "#108aac" },
-    { id: 4, name: "Vite", icon: <SiVite />, color: "#535bfc" },
-    { id: 5, name: "HTML5", icon: <FaHtml5 />, color: "#f74514" },
-    { id: 6, name: "CSS3", icon: <FaCss3Alt />, color: "#0f6fb4" },
+    {
+      id: 1,
+      name: "Python",
+      icon: <FaPython />,
+      color: "#3776AB",
+      tajriba: "80%",
+    },
+    {
+      id: 2,
+      name: "JavaScript",
+      icon: <FaJsSquare />,
+      color: "#F7DF1E",
+      tajriba: "90%",
+    },
+    {
+      id: 3,
+      name: "React",
+      icon: <FaReact />,
+      color: "#108aac",
+      tajriba: "90%",
+    },
+    { id: 4, name: "Vite", icon: <SiVite />, color: "#535bfc", tajriba: "80%" },
+    {
+      id: 5,
+      name: "HTML5",
+      icon: <FaHtml5 />,
+      color: "#f74514",
+      tajriba: "90%",
+    },
+    {
+      id: 6,
+      name: "CSS3",
+      icon: <FaCss3Alt />,
+      color: "#0f6fb4",
+      tajriba: "90%",
+    },
   ];
   const myDatabase = [
-    { id: 1, name: "MySQL", icon: <GrMysql />, color: "#00758F" },
-    { id: 2, name: "PostgreSQL", icon: <BiLogoPostgresql />, color: "#336791" },
-    { id: 3, name: "MongoDB", icon: <SiMongodb />, color: "#00ED64" },
+    {
+      id: 1,
+      name: "MySQL",
+      icon: <GrMysql />,
+      color: "#00758F",
+      tajriba: "60%",
+    },
+    {
+      id: 2,
+      name: "PostgreSQL",
+      icon: <BiLogoPostgresql />,
+      color: "#336791",
+      tajriba: "50%",
+    },
+    {
+      id: 3,
+      name: "MongoDB",
+      icon: <SiMongodb />,
+      color: "#00ED64",
+      tajriba: "80%",
+    },
+    {
+      id: 4,
+      name: "SupaBase",
+      icon: <SiSupabase />,
+      color: "#00ED64",
+      tajriba: "80%",
+    },
   ];
   const myPrinciples = [
     {
@@ -124,6 +180,7 @@ function Home() {
         <div className="skills-section-block">
           <h3 className="sub-section-title">Frontend & Backend</h3>
           <div className="skill-card-grid">
+            {/* Frontend & Backend kartalari uchun */}
             {mySkills.map((skill) => {
               let shortDesc = "";
               if (skill.name === "Python")
@@ -141,6 +198,25 @@ function Home() {
 
               return (
                 <div className="enhanced-skill-card" key={skill.id}>
+                  {/* Hover bo'lganda chiquvchi tajriba bloki */}
+                  <div className="skill-hover-info">
+                    <span
+                      className="skill-percent-badge"
+                      style={{ color: skill.color }}
+                    >
+                      {skill.tajriba}
+                    </span>
+                    <div className="skill-progress-bar">
+                      <div
+                        className="skill-progress-fill"
+                        style={{
+                          "--target-width": skill.tajriba,
+                          backgroundColor: skill.color,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
                   <div className="skill-card-header">
                     <div
                       className="skill-icon-box"
@@ -167,9 +243,29 @@ function Home() {
                 dbDesc = "Murakkab va yuqori yuklamali arxitekturalar";
               if (db.name === "MongoDB")
                 dbDesc = "NoSQL moslashuvchan ma'lumotlar oqimi";
+              if (db.name === "SupaBase")
+                dbDesc = "Tezkor va real vaqt ma'lumotlar bazasi";
 
               return (
                 <div className="enhanced-db-card" key={db.id}>
+                  <div className="skill-hover-info">
+                    <span
+                      className="skill-percent-badge"
+                      style={{ color: db.color }}
+                    >
+                      {db.tajriba}
+                    </span>
+                    <div className="skill-progress-bar">
+                      <div
+                        className="skill-progress-fill"
+                        style={{
+                          "--target-width": db.tajriba,
+                          backgroundColor: db.color,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
                   <div className="db-card-header">
                     <div className="db-icon-box" style={{ color: db.color }}>
                       {db.icon}
