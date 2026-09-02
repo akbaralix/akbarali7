@@ -24,8 +24,31 @@ app.set("trust proxy", 1);
 app.use(helmet());
 
 // 2. CORS sozlamalari
-app.use(cors());
+// 2. CORS sozlamalari
+const allowedOrigins = [
+  "https://akbaralix.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
 
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Postman/Server so'rovi (!origin) yoki ruxsat etilgan domenlar
+      if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+        callback(null, true);
+      } else {
+        callback(null, false); // Error otmasdan, shunchaki taqiqlaymiz
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+// Preflight (OPTIONS) so'rovlariga javob berish
+app.options("*", cors());
 // 3. JSON body parser
 app.use(express.json({ limit: "10mb" }));
 
@@ -107,7 +130,8 @@ const loginLimiter = rateLimit({
   max: 5, // 15 daqiqada maksimal 5 marta kirishga urinish
   message: {
     success: false,
-    message: "Juda ko'p xato urinishlar! Iltimos, 15 daqiqadan so'ng qayta urinib ko'ring. ❌",
+    message:
+      "Juda ko'p xato urinishlar! Iltimos, 15 daqiqadan so'ng qayta urinib ko'ring. ❌",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -118,7 +142,8 @@ const writeLimiter = rateLimit({
   max: 30, // 15 daqiqada maksimal 30 ta post yaratish/o'chirish
   message: {
     success: false,
-    message: "Juda ko me'yordan ortiq so'rov yuborildi. Iltimos bir oz kuting. ❌",
+    message:
+      "Juda ko me'yordan ortiq so'rov yuborildi. Iltimos bir oz kuting. ❌",
   },
 });
 
@@ -143,14 +168,15 @@ const authMiddleware = (req, res, next) => {
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "fallback_secret_key_2026_safe"
+      process.env.JWT_SECRET || "fallback_secret_key_2026_safe",
     );
     req.admin = decoded;
     next();
   } catch (err) {
     return res.status(401).json({
       success: false,
-      message: "Yaroqsiz yoki muddati o'tgan token! Qaytadan tizimga kiring. ❌",
+      message:
+        "Yaroqsiz yoki muddati o'tgan token! Qaytadan tizimga kiring. ❌",
     });
   }
 };
@@ -179,7 +205,7 @@ app.post("/api/admin/login", loginLimiter, async (req, res) => {
     const token = jwt.sign(
       { role: "admin" },
       process.env.JWT_SECRET || "fallback_secret_key_2026_safe",
-      { expiresIn: "24h" }
+      { expiresIn: "24h" },
     );
 
     res.status(200).json({
@@ -241,7 +267,7 @@ app.post("/api/visitor/track", async (req, res) => {
         $setOnInsert: { ip: safeIp, firstSeen: now },
         $inc: { visitCount: 1 },
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     res.status(201).json({ success: true, data: visitor });
@@ -298,7 +324,7 @@ app.post("/api/visitor/session", async (req, res) => {
         $setOnInsert: { ip: safeIp, firstSeen: now },
         $inc: { totalDurationMs: safeDuration },
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     res.status(200).json({ success: true, data: visitor });
@@ -337,32 +363,53 @@ app.post("/api/post", authMiddleware, writeLimiter, async (req, res) => {
 
     // Ma'lumotlarni validatsiya qilish
     if (!sarlavha || typeof sarlavha !== "string" || !sarlavha.trim()) {
-      return res.status(400).json({ success: false, message: "Sarlavha kiritilishi shart!" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Sarlavha kiritilishi shart!" });
     }
 
     if (!rasm || typeof rasm !== "string" || !rasm.trim()) {
-      return res.status(400).json({ success: false, message: "Rasm URL-manzili kiritilishi shart!" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Rasm URL-manzili kiritilishi shart!",
+        });
     }
 
     // XSS Hujumlaridan himoyalash uchun HTML tozalash
-    const tozalanganMatn = sanitizeHtml(matn ? matn.replace(/&nbsp;/g, " ") : "", {
-      allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-        "img", "iframe", "h1", "h2", "h3", "h4", "u", "span", "blockquote"
-      ]),
-      allowedAttributes: {
-        ...sanitizeHtml.defaults.allowedAttributes,
-        img: ["src", "alt", "title", "width", "height"],
-        iframe: ["src", "width", "height", "frameborder", "allowfullscreen"],
-        span: ["style", "class"],
-        a: ["href", "name", "target", "rel"]
+    const tozalanganMatn = sanitizeHtml(
+      matn ? matn.replace(/&nbsp;/g, " ") : "",
+      {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+          "img",
+          "iframe",
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "u",
+          "span",
+          "blockquote",
+        ]),
+        allowedAttributes: {
+          ...sanitizeHtml.defaults.allowedAttributes,
+          img: ["src", "alt", "title", "width", "height"],
+          iframe: ["src", "width", "height", "frameborder", "allowfullscreen"],
+          span: ["style", "class"],
+          a: ["href", "name", "target", "rel"],
+        },
+        allowedSchemesByTag: {
+          img: ["data", "http", "https"],
+          iframe: ["http", "https"],
+        },
       },
-      allowedSchemesByTag: {
-        img: ["data", "http", "https"],
-        iframe: ["http", "https"]
-      }
-    });
+    );
 
-    const cleanSarlavha = sanitizeHtml(sarlavha, { allowedTags: [], allowedAttributes: {} });
+    const cleanSarlavha = sanitizeHtml(sarlavha, {
+      allowedTags: [],
+      allowedAttributes: {},
+    });
 
     // Yangi post ob'ektini yaratamiz
     const newPost = new Post({
@@ -422,7 +469,7 @@ app.post("/api/post/view/:id", async (req, res) => {
     const updatedPost = await Post.findByIdAndUpdate(
       postId,
       { $inc: { korildi: 1 } },
-      { returnDocument: "after" }
+      { returnDocument: "after" },
     );
 
     if (!updatedPost) {
@@ -451,7 +498,9 @@ app.delete("/api/post/:id", authMiddleware, writeLimiter, async (req, res) => {
       return res.status(404).json({ message: "Maqola topilmadi! ❌" });
     }
 
-    res.status(200).json({ success: true, message: "Maqola muvaffaqiyatli o'chirildi! 🎉" });
+    res
+      .status(200)
+      .json({ success: true, message: "Maqola muvaffaqiyatli o'chirildi! 🎉" });
   } catch (err) {
     console.error("O'chirishda xatolik:", err);
     res.status(500).json({ error: err.message });
